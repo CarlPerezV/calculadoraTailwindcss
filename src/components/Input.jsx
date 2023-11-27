@@ -1,10 +1,10 @@
-const Input = ({ input }) => {
+const Input = ({ value }) => {
   return (
     <input
       type="text"
-      className="mt-2 block w-full rounded-xl border-8 border-y-8 border-gray-500 border-b-black bg-emerald-200 text-right  text-7xl text-gray-700"
-      value={input}
-      maxLength={12}
+      className="block h-24 w-full rounded-xl border-x-8 border-b-8 border-t-2 border-zinc-950 bg-gradient-to-r from-green-300 to-emerald-200 px-3 text-right text-6xl text-gray-700"
+      value={value}
+      //onChange={handleChange}
     />
   );
 };
