@@ -2,8 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 @layer base {
     :root {
-        background-color: #02030a;
+        @apply bg-gradient-to-tr h-full from-indigo-900 via-zinc-950 to-purple-950
+    }
+
+    @font-face {
+        font-family: "DIGIT";
+        src: url("/src/fonts/DS-DIGIT.TTF");
     }
 }
