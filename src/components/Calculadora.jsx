@@ -151,11 +151,11 @@ const Calculadora = () => {
           /> */}
         </header>
         <section className='m-0 border-t-4 border-zinc-900 p-0'>
-          <div className='flex justify-end px-2 pt-3'>
+          <div className='flex justify-end px-2 pt-6'>
             <Button symbol={"%"}>%</Button>
             <Button symbol={"MU"}>MU</Button>
           </div>
-          <div className='grid grid-cols-5 gap-1 p-2'>
+          <div className='grid grid-cols-5 gap-1 p-3'>
             <Button symbol={"MR"}>MR</Button>
             <Button symbol={"MC"}>MC</Button>
             <Button symbol={"M-"}>M-</Button>
