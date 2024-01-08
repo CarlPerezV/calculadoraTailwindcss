@@ -6,7 +6,7 @@
 
 @layer base {
     :root {
-        @apply bg-gradient-to-tr h-full from-indigo-900 via-zinc-950 to-purple-950
+        @apply bg-gradient-to-tr w-screen h-screen from-indigo-900 via-zinc-950 to-purple-950
     }
 
     @font-face {
