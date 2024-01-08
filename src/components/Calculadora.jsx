@@ -125,7 +125,7 @@ const Calculadora = () => {
   return (
     <>
       {/* container bg-zinc-800 mx-auto rounded-3xl mt-10 px-8 p-4 shadow-xl w-6/12 */}
-      <main className='container mx-auto mt-24 block h-[38rem] w-[32.5rem] rounded-3xl border-x-4 border-b-2 border-s-4 border-t-8 border-gray-600 bg-gradient-to-r from-stone-800 via-stone-950 to-black p-2 text-white shadow-lg shadow-purple-800'>
+      <main className=' mx-auto mt-24 block h-[40rem] w-[32rem] rounded-3xl border-x-4 border-b-2 border-s-4 border-t-8 border-gray-600 bg-gradient-to-r from-stone-800 via-stone-950 to-black p-2 text-white shadow-lg shadow-purple-800'>
         <header className='p-3'>
           <div className='flex justify-between px-2'>
             <h1 className=' text-3xl font-black tracking-tighter'>CASIO</h1>
