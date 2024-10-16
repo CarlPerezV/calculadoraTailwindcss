@@ -8,7 +8,7 @@ export const ButtonStyles = (btn) => {
   const acButton =
     "m-2 h-11 w-20 rounded-md border border-r-2 border-t-2 border-zinc-500 bg-gradient-to-r from-orange-400 to-amber-600 px-4 text-sm font-medium text-gray-200 ring-zinc-700 hover:bg-gradient-to-r hover:from-orange-500 hover:to-amber-700 focus:ring-4";
   const sumButton =
-    "row-span-3  m-2 rounded-md border border-r-2 border-t-2 border-zinc-500 bg-gradient-to-r from-neutral-600 to-gray-800 text-3xl font-medium text-gray-200 ring-zinc-700 hover:bg-gradient-to-r hover:from-neutral-700 hover:to-gray-900 focus:ring-4";
+    "row-span-3 w-20 m-2 rounded-md border border-r-2 border-t-2 border-zinc-500 bg-gradient-to-r from-neutral-600 to-gray-800 text-3xl font-medium text-gray-200 ring-zinc-700 hover:bg-gradient-to-r hover:from-neutral-700 hover:to-gray-900 focus:ring-4";
 
   const className = {
     MU: operatorButton,

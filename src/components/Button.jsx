@@ -1,11 +1,8 @@
 import { ButtonStyles } from "./ButtonStyles";
 
-const Button = ({ symbol, children, handleClick }) => {
+const Button = ({ symbol, children, dispatch }) => {
   return (
-    <button
-      className={`${ButtonStyles(symbol)}`}
-      onClick={() => handleClick(symbol)}
-    >
+    <button className={`${ButtonStyles(symbol)}`} onClick={dispatch}>
       {children}
     </button>
   );

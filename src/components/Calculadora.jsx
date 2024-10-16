@@ -1,223 +1,338 @@
-import { useState } from "react";
+import { useReducer } from "react";
 import Button from "./Button";
 import Screen from "./Screen";
+import Header from "./Header";
 
-const Calculadora = () => {
-  // const [input, setInput] = useState("0");
-  const [calc, setCalc] = useState({
-    input: "",
-    value1: 0,
-    minus: "-",
-    mr: 0,
-    mc: 0,
-    operator1: "",
-  });
-  const [screen, setScreen] = useState("000000000000");
+const ACTIONS = {
+  ADD_NUMBER: "add-number",
+  OPERATION: "operation",
+  CLEAR: "clear",
+  DELETE: "delete",
+  EVALUATE: "evaluate",
+};
 
-  const addNumbers = (nums) => {
-    // la cantidad maxima de la calculadora son 12 digitos
-    if (calc.input.length === 12) return;
+const initialState = {
+  input: "",
+  operation1: "",
+  operation2: "",
+  operator: "",
+  screen: "000000000000",
+};
 
-    if (calc.input.toString().includes(".") && nums.toString().includes("."))
-      return;
-
-    if (calc.value1) {
-      setCalc({ ...calc, input: nums + calc.input });
-    }
-
-    calc.input === 0 || calc.input === "0" || calc.input === "00"
-      ? setCalc({ ...calc, input: nums })
-      : setCalc({ ...calc, input: calc.input + nums });
-
-    if (calc.input.toString().charAt(0) === ".") {
-      setCalc({ ...calc, input: "0." + nums });
-    }
-    console.log(
-      "value 1",
-      calc.value1,
-      "operador ",
-      calc.operator1,
-      "input ",
-      calc.input,
-    );
-  };
-
-  // cambia el valor a negativo
-  const minusPlusButton = () => {
-    // if (calc.minus) {
-    //   console.log("Tiene minus", calc.input);
-    // }
-
-    console.log("Tiene minus", calc.minus);
-    // calc.input.charAt(0) === "-"
-    //   ? setCalc(calc.input.substring(1))
-    //   : setCalc("-" + calc.input);
-    // console.log("el minus " + calc.input);
-    // console.log("el minus ", "-" + calc.input);
-  };
-
-  const deleteNumber = () => {
-    calc.input.length === 1
-      ? setCalc({ ...calc, input: "" })
-      : setCalc({ ...calc, input: calc.input.slice(0, -1) });
-  };
-
-  const operatorButton = (value) => {
-    // aca la logica es que si value1 ya tiene un dato se calcula
-    if (calc.value1) {
-      setScreen(calc.input);
-      console.log("input del calc ", calc.input);
-
-      try {
-        const newCalc = {
-          ...calc,
-          value1: eval(calc.value1 + calc.operator1 + calc.input).toString(),
-          operator1: value,
+function reducer(state, { type, payload }) {
+  const calculate = () => {
+    // aca la lógica es que si tiene valor 1 se calcula al agregar otro operador
+    try {
+      if (state.operation1) {
+        console.log(state);
+        return {
+          ...state,
+          operation1: eval(state.operation1 + state.operator + state.input),
+          screen: eval(state.operation1 + state.operator + state.input),
+          operator: payload,
           input: "",
         };
+      }
 
-        setCalc(newCalc);
-        setScreen(newCalc.value1);
-      } catch (e) {
-        // console.log(e);
-        setScreen(calc.value1);
-        setCalc({
-          ...calc,
-          operator1: value,
-        });
+      console.log(state);
+      return {
+        ...state,
+        operation1: state.input,
+        operator: payload,
+        input: "",
+        screen: state.input,
+      };
+    } catch (error) {
+      return {
+        ...state,
+        operator: payload,
+      };
+    }
+  };
+
+  switch (type) {
+    case ACTIONS.ADD_NUMBER: {
+      if (
+        (payload === "00" && state.input === "") ||
+        (payload === 0 && state.input === "")
+      ) {
+        return state;
+      }
+
+      // En caso que el primer digito sea un punto marca con el 0 antes
+      if (payload === "." && state.input === "") {
+        return {
+          ...state,
+          input: "0.",
+        };
+      }
+
+      // se evita que si tiene otro punto se pueda agregar mas
+      if (payload === "." && state.input.toString().includes(".")) {
+        return state;
+      }
+
+      return {
+        ...state,
+        input: `${state.input || ""}${payload}`,
+      };
+    }
+    case ACTIONS.OPERATION: {
+      // aca la lógica es que si tiene valor 1 se calcula al agregar otro operador
+      try {
+        if (state.operation1) {
+          console.log(state);
+          return {
+            ...state,
+            operation1: eval(state.operation1 + state.operator + state.input),
+            screen: eval(state.operation1 + state.operator + state.input),
+            operator: payload,
+            input: "",
+          };
+        }
+
+        console.log(state);
+        return {
+          ...state,
+          operation1: state.input,
+          operator: payload,
+          input: "",
+          screen: state.input,
+        };
+      } catch (error) {
+        return {
+          ...state,
+          operator: payload,
+        };
       }
     }
-    // Si value1 no tiene datos
-    if (calc.value1 === 0) {
-      setScreen(calc.input);
-      setCalc({
-        ...calc,
-        value1: calc.input,
-        operator1: value,
-        input: "",
-      });
-    }
-    console.log("fuera ", calc.operator1);
-  };
+    case ACTIONS.EVALUATE:
+      try {
+        if (!state.operation1) {
+          return { ...state };
+        }
+        return {
+          ...state,
+          operation1: eval(state.operation1 + state.operator + state.input),
+          screen: eval(state.operation1 + state.operator + state.input),
+          operator: state.operator,
+          input: "",
+        };
+      } catch (error) {
+        return {
+          ...state,
+        };
+      }
+    case ACTIONS.DELETE:
+      return {
+        ...state,
+        input: state.input.slice(0, -1),
+      };
 
-  const calcResult = () => {
-    const newCalc = {
-      ...calc,
-      value1: eval(calc.value1 + calc.operator1 + calc.input).toString(),
-      input: "",
-    };
+    case ACTIONS.CLEAR:
+      return initialState;
 
-    setCalc(newCalc);
-    setScreen(newCalc.value1);
-  };
+    default:
+      return state;
+  }
+}
 
-  const clearButton = () => {
-    setScreen("000000000000");
+// function evaluate({ operation1, operation2, operator }) {
+//   const prev = parseFloat(operation1);
+//   const current = parseFloat(operation2);
+//   if (isNaN(prev) || isNaN(current)) return "";
+//   let computation = "";
+//   switch (operator) {
+//     case "+":
+//       computation = prev + current;
+//       break;
+//     case "/":
+//       computation = prev / current;
+//       break;
+//     case "-":
+//       computation = prev - current;
+//       break;
+//     case "*":
+//       computation = prev * current;
+//       break;
+//   }
 
-    setCalc({
-      input: "",
-      value1: 0,
-      minus: 0,
-      operator: "",
-    });
-  };
+//   return computation.toString();
+// }
+
+const Calculadora = () => {
+  const [{ operation1, operation2, operator, screen, input }, dispatch] =
+    useReducer(reducer, initialState);
 
   return (
     <>
       {/* container bg-zinc-800 mx-auto rounded-3xl mt-10 px-8 p-4 shadow-xl w-6/12 */}
       <main className=' mx-auto mt-24 block h-[40rem] w-[32rem] rounded-3xl border-x-4 border-b-2 border-s-4 border-t-8 border-gray-600 bg-gradient-to-r from-stone-800 via-stone-950 to-black p-2 text-white shadow-lg shadow-purple-800'>
         <header className='p-3'>
-          <div className='flex justify-between px-2'>
-            <h1 className=' text-3xl font-black tracking-tighter'>CASIO</h1>
-            <div className='mb-3 grid w-48 grid-cols-4 rounded-md border-x-2 border-t-4 border-stone-700 bg-gradient-to-t from-yellow-600 to-yellow-800'>
-              <div className='col-start-2 border-x-2 border-r-0 border-yellow-300'></div>
-              <div className='border-x-2 border-yellow-300'></div>
-            </div>
-            <div className='flex-cols-2 mb-2 flex items-center'>
-              <h3 className='mx-1 pr-2 text-center'>MX-12B</h3>
-              <div className='mb-2'>
-                <h2 className='text-3xl font-black tracking-tighter'>12</h2>
-                <h3 className='-mt-2 text-xs font-light tracking-wider'>
-                  Digits
-                </h3>
-              </div>
-            </div>
-          </div>
-          <Screen value={calc.input} placeholder={screen}></Screen>
-          {/* <input
-            className="w-full border-8 border-b-black border-y-8 border-gray-500 mt-2 text-right text-gray-700 text-7xl block  rounded-xl bg-emerald-200"
-            type="text"
-            maxLength={12}
-          /> */}
+          <Header />
+          <Screen value={input} placeholder={screen} />
         </header>
         <section className='m-0 border-t-4 border-zinc-900 p-0'>
           <div className='flex justify-end px-2 pt-6'>
-            <Button symbol={"%"}>%</Button>
+            <Button symbol={"%"} dispatch={dispatch}>
+              %
+            </Button>
             <Button symbol={"MU"}>MU</Button>
           </div>
           <div className='grid grid-cols-5 gap-1 p-3'>
-            <Button symbol={"MR"}>MR</Button>
+            <Button symbol={"MR"} dispatch={dispatch}>
+              MR
+            </Button>
             <Button symbol={"MC"}>MC</Button>
             <Button symbol={"M-"}>M-</Button>
             <Button symbol={"M+"}>M+</Button>
-            <Button symbol={"/"} handleClick={operatorButton}>
+            <Button
+              symbol={"/"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.OPERATION, payload: "/" })
+              }
+            >
               ÷
             </Button>
-            <Button symbol={"minus"} handleClick={minusPlusButton}>
+            <Button symbol={"minus"} dispatch={dispatch}>
               +/-
             </Button>
-            <Button symbol={"7"} handleClick={addNumbers}>
+            <Button
+              symbol={"7"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 7 })
+              }
+            >
               7
             </Button>
-            <Button symbol={"8"} handleClick={addNumbers}>
+            <Button
+              symbol={"8"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 8 })
+              }
+            >
               8
             </Button>
-            <Button symbol={"9"} handleClick={addNumbers}>
+            <Button
+              symbol={"9"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 9 })
+              }
+            >
               9
             </Button>
-            <Button symbol={"*"} handleClick={operatorButton}>
+            <Button
+              symbol={"*"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.OPERATION, payload: "*" })
+              }
+            >
               X
             </Button>
-            <Button symbol={"DEL"} handleClick={deleteNumber}>
+            <Button
+              symbol={"DEL"}
+              dispatch={() => dispatch({ type: ACTIONS.DELETE })}
+            >
               ►
             </Button>
-            <Button symbol={"4"} handleClick={addNumbers}>
+            <Button
+              symbol={"4"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 4 })
+              }
+            >
               4
             </Button>
-            <Button symbol={"5"} handleClick={addNumbers}>
+            <Button
+              symbol={"5"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 5 })
+              }
+            >
               5
             </Button>
-            <Button symbol={"6"} handleClick={addNumbers}>
+            <Button
+              symbol={"6"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 6 })
+              }
+            >
               6
             </Button>
-            <Button symbol={"-"} handleClick={operatorButton}>
+            <Button
+              symbol={"-"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.OPERATION, payload: "-" })
+              }
+            >
               -
             </Button>
-            <Button symbol={"C"} handleClick={clearButton}>
+            <Button
+              symbol={"C"}
+              dispatch={() => dispatch({ type: ACTIONS.CLEAR })}
+            >
               C/AC ON
             </Button>
-            <Button symbol={"1"} handleClick={addNumbers}>
+            <Button
+              symbol={"1"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 1 })
+              }
+            >
               1
             </Button>
-            <Button symbol={"2"} handleClick={addNumbers}>
+            <Button
+              symbol={"2"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 2 })
+              }
+            >
               2
             </Button>
-            <Button symbol={"3"} handleClick={addNumbers}>
+            <Button
+              symbol={"3"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 3 })
+              }
+            >
               3
             </Button>
-            <Button symbol={"+"} handleClick={operatorButton}>
+            <Button
+              symbol={"+"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.OPERATION, payload: "+" })
+              }
+            >
               +
             </Button>
-            <Button symbol={"0"} handleClick={addNumbers}>
+            <Button
+              symbol={"0"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: 0 })
+              }
+            >
               0
             </Button>
-            <Button symbol={"00"} handleClick={addNumbers}>
+            <Button
+              symbol={"00"}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: "00" })
+              }
+            >
               00
             </Button>
-            <Button symbol={"."} handleClick={addNumbers}>
+            <Button
+              symbol={"."}
+              dispatch={() =>
+                dispatch({ type: ACTIONS.ADD_NUMBER, payload: "." })
+              }
+            >
               .
             </Button>
-            <Button symbol={"="} handleClick={calcResult}>
+            <Button
+              symbol={"="}
+              dispatch={() => dispatch({ type: ACTIONS.EVALUATE })}
+            >
               =
             </Button>
           </div>
