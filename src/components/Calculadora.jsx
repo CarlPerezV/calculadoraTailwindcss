@@ -112,15 +112,17 @@ function reducer(state, { type, payload }) {
       };
 
     case ACTIONS.MINPLUS:
+      console.log(state);
       if (isNaN(eval(state.currentValue) * -1)) {
         return state;
       }
       return {
         ...state,
-        currentValue: eval(state.currentValue) * -1,
+        currentValue: (eval(state.currentValue) * -1).toString(),
       };
 
     case ACTIONS.DELETE:
+      console.log(state);
       return {
         ...state,
         currentValue: state.currentValue.slice(0, -1),
