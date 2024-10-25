@@ -13,3 +13,9 @@ Calculadora
 #### En el componente calculadora en primera parte tenia todo ahí, después de ver tantas clases de tailwindcss mi ojo empezó a tiritar porque se me mezclaba con el código de Js, asi que lo pase a un componente para que quede un poco mas limpia.
 
 #### Hasta ahora solo faltan las funcionalidades de los botones % y MU(este no sé que hace la verdad), el resto esta funcionando.
+
+###
+
+Para probar las funciones me guie desde este video, ya que no tenia la calculadora para hacer pruebas
+
+[Enlace video funciones de memoria](https://youtu.be/ns55ZqaMkcM?si=FvN0jH4GyMx9pTyt)
