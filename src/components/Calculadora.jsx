@@ -9,160 +9,244 @@ const ACTIONS = {
   CLEAR: "clear",
   DELETE: "delete",
   EVALUATE: "evaluate",
+  MINPLUS: "minus-plus",
+  MEM_ADD: "memory-add",
+  MEM_SUB: "memory-subtract",
+  MEM_CLR: "memory-clear",
+  MEM_MR: "memory-mirror",
 };
 
 const initialState = {
-  input: "",
-  operation1: "",
-  operation2: "",
+  currentValue: "",
+  prevValue: "",
   operator: "",
   screen: "000000000000",
+  memory: "",
 };
 
 function reducer(state, { type, payload }) {
-  const calculate = () => {
-    // aca la lógica es que si tiene valor 1 se calcula al agregar otro operador
-    try {
-      if (state.operation1) {
-        console.log(state);
-        return {
-          ...state,
-          operation1: eval(state.operation1 + state.operator + state.input),
-          screen: eval(state.operation1 + state.operator + state.input),
-          operator: payload,
-          input: "",
-        };
-      }
-
-      console.log(state);
-      return {
-        ...state,
-        operation1: state.input,
-        operator: payload,
-        input: "",
-        screen: state.input,
-      };
-    } catch (error) {
-      return {
-        ...state,
-        operator: payload,
-      };
-    }
-  };
-
   switch (type) {
     case ACTIONS.ADD_NUMBER: {
+      // evita agregar 0 como primer dígito si no hay un punto
       if (
-        (payload === "00" && state.input === "") ||
-        (payload === 0 && state.input === "")
+        (payload === "00" && state.currentValue === "") ||
+        (payload === 0 && state.currentValue === "")
       ) {
         return state;
       }
 
-      // En caso que el primer digito sea un punto marca con el 0 antes
-      if (payload === "." && state.input === "") {
+      // En caso que el primer dígito sea un punto marca con el 0 antes
+      if (payload === "." && state.currentValue === "") {
         return {
           ...state,
-          input: "0.",
+          currentValue: "0.",
         };
       }
 
       // se evita que si tiene otro punto se pueda agregar mas
-      if (payload === "." && state.input.toString().includes(".")) {
+      if (payload === "." && state.currentValue.toString().includes(".")) {
+        return state;
+      }
+
+      if (state.currentValue.length >= 12) {
         return state;
       }
 
       return {
         ...state,
-        input: `${state.input || ""}${payload}`,
+        currentValue: `${state.currentValue || ""}${payload}`,
       };
     }
     case ACTIONS.OPERATION: {
-      // aca la lógica es que si tiene valor 1 se calcula al agregar otro operador
-      try {
-        if (state.operation1) {
-          console.log(state);
-          return {
-            ...state,
-            operation1: eval(state.operation1 + state.operator + state.input),
-            screen: eval(state.operation1 + state.operator + state.input),
-            operator: payload,
-            input: "",
-          };
-        }
+      if (state.currentValue == "" && state.prevValue == "") {
+        return state;
+      }
 
-        console.log(state);
-        return {
-          ...state,
-          operation1: state.input,
-          operator: payload,
-          input: "",
-          screen: state.input,
-        };
-      } catch (error) {
+      if (state.currentValue == "") {
         return {
           ...state,
           operator: payload,
         };
       }
+
+      // Aca la lógica es después del signo igual (=), si no agregamos un operador, genere una operación nueva
+      if (state.prevValue !== "" && state.operator == "") {
+        return {
+          ...state,
+          prevValue: state.currentValue,
+          operator: payload,
+          screen: state.currentValue,
+          currentValue: "",
+        };
+      }
+
+      if (state.prevValue == "") {
+        return {
+          ...state,
+          operator: payload,
+          prevValue: state.currentValue,
+          screen: state.currentValue,
+          currentValue: "",
+        };
+      }
+
+      return {
+        ...state,
+        prevValue: evaluate(state),
+        screen: evaluate(state),
+        operator: payload,
+        currentValue: "",
+      };
     }
     case ACTIONS.EVALUATE:
-      try {
-        if (!state.operation1) {
-          return { ...state };
-        }
-        return {
-          ...state,
-          operation1: eval(state.operation1 + state.operator + state.input),
-          screen: eval(state.operation1 + state.operator + state.input),
-          operator: state.operator,
-          input: "",
-        };
-      } catch (error) {
-        return {
-          ...state,
-        };
+      if (!state.operator || !state.prevValue || !state.currentValue) {
+        return { ...state };
       }
+
+      return {
+        ...state,
+        prevValue: evaluate(state),
+        screen: evaluate(state),
+        currentValue: "",
+        operator: "",
+      };
+
+    case ACTIONS.MINPLUS:
+      if (isNaN(eval(state.currentValue) * -1)) {
+        return state;
+      }
+      return {
+        ...state,
+        currentValue: eval(state.currentValue) * -1,
+      };
+
     case ACTIONS.DELETE:
       return {
         ...state,
-        input: state.input.slice(0, -1),
+        currentValue: state.currentValue.slice(0, -1),
       };
 
     case ACTIONS.CLEAR:
       return initialState;
 
+    case ACTIONS.MEM_ADD:
+      const numberAdd = parseFloat(payload);
+      if (payload == "0") {
+        return state;
+      }
+
+      if (state.memory == "") {
+        return {
+          ...state,
+          memory: evaluate(state) || numberAdd,
+          screen: evaluate(state) || numberAdd,
+          currentValue: "",
+          prevValue: "",
+          operator: "",
+        };
+      }
+      // Condición si tiene datos en memoria, al hacer otra operación se suma a lo que contiene
+      if (state.operator) {
+        return {
+          ...state,
+          memory: eval(state.memory) + eval(evaluate(state)),
+          screen: eval(state.memory) + eval(evaluate(state)),
+          currentValue: "",
+          prevValue: "",
+          operator: "",
+        };
+      }
+      return {
+        ...state,
+        memory: eval(state.memory) + numberAdd,
+        screen: eval(state.memory) + numberAdd,
+        currentValue: "",
+        prevValue: "",
+        operator: "",
+      };
+
+    case ACTIONS.MEM_SUB:
+      const numberSub = parseFloat(payload);
+      if (payload == "0") {
+        return state;
+      }
+
+      if (state.memory == "") {
+        return {
+          ...state,
+          memory: evaluate(state) || numberSub,
+          screen: evaluate(state) || numberSub,
+          currentValue: "",
+          prevValue: "",
+          operator: "",
+        };
+      }
+      // Condición si tiene datos en memoria, al hacer otra operación se suma a lo que contiene
+      if (state.operator) {
+        return {
+          ...state,
+          memory: eval(state.memory) - eval(evaluate(state)),
+          screen: eval(state.memory) - eval(evaluate(state)),
+          currentValue: "",
+          prevValue: "",
+          operator: "",
+        };
+      }
+
+      return {
+        ...state,
+        memory: eval(state.memory) - numberSub,
+        screen: eval(state.memory) - numberSub,
+        currentValue: "",
+        prevValue: "",
+        operator: "",
+      };
+    case ACTIONS.MEM_CLR:
+      return {
+        ...state,
+        memory: "",
+        screen: "0",
+        currentValue: "",
+      };
+    case ACTIONS.MEM_MR:
+      return {
+        ...state,
+        currentValue: "",
+        screen: state.memory,
+      };
     default:
       return state;
   }
 }
 
-// function evaluate({ operation1, operation2, operator }) {
-//   const prev = parseFloat(operation1);
-//   const current = parseFloat(operation2);
-//   if (isNaN(prev) || isNaN(current)) return "";
-//   let computation = "";
-//   switch (operator) {
-//     case "+":
-//       computation = prev + current;
-//       break;
-//     case "/":
-//       computation = prev / current;
-//       break;
-//     case "-":
-//       computation = prev - current;
-//       break;
-//     case "*":
-//       computation = prev * current;
-//       break;
-//   }
+function evaluate({ currentValue, prevValue, operator }) {
+  const prev = parseFloat(prevValue);
+  const current = parseFloat(currentValue);
+  if (isNaN(prev) || isNaN(current)) return "";
+  let result = "";
+  switch (operator) {
+    case "+":
+      result = prev + current;
+      break;
+    case "/":
+      result = prev / current;
+      break;
+    case "-":
+      result = prev - current;
+      break;
+    case "*":
+      result = prev * current;
+      break;
+  }
 
-//   return computation.toString();
-// }
+  return result.toString().slice(0, 12);
+}
 
 const Calculadora = () => {
-  const [{ operation1, operation2, operator, screen, input }, dispatch] =
-    useReducer(reducer, initialState);
+  const [{ currentValue, screen }, dispatch] = useReducer(
+    reducer,
+    initialState,
+  );
 
   return (
     <>
@@ -170,7 +254,7 @@ const Calculadora = () => {
       <main className=' mx-auto mt-24 block h-[40rem] w-[32rem] rounded-3xl border-x-4 border-b-2 border-s-4 border-t-8 border-gray-600 bg-gradient-to-r from-stone-800 via-stone-950 to-black p-2 text-white shadow-lg shadow-purple-800'>
         <header className='p-3'>
           <Header />
-          <Screen value={input} placeholder={screen} />
+          <Screen value={currentValue} placeholder={screen} />
         </header>
         <section className='m-0 border-t-4 border-zinc-900 p-0'>
           <div className='flex justify-end px-2 pt-6'>
@@ -180,12 +264,48 @@ const Calculadora = () => {
             <Button symbol={"MU"}>MU</Button>
           </div>
           <div className='grid grid-cols-5 gap-1 p-3'>
-            <Button symbol={"MR"} dispatch={dispatch}>
+            <Button
+              symbol={"MR"}
+              dispatch={() =>
+                dispatch({
+                  type: ACTIONS.MEM_MR,
+                })
+              }
+            >
               MR
             </Button>
-            <Button symbol={"MC"}>MC</Button>
-            <Button symbol={"M-"}>M-</Button>
-            <Button symbol={"M+"}>M+</Button>
+            <Button
+              symbol={"MC"}
+              dispatch={() =>
+                dispatch({
+                  type: ACTIONS.MEM_CLR,
+                })
+              }
+            >
+              MC
+            </Button>
+            <Button
+              symbol={"M-"}
+              dispatch={() =>
+                dispatch({
+                  type: ACTIONS.MEM_SUB,
+                  payload: currentValue || screen,
+                })
+              }
+            >
+              M-
+            </Button>
+            <Button
+              symbol={"M+"}
+              dispatch={() =>
+                dispatch({
+                  type: ACTIONS.MEM_ADD,
+                  payload: currentValue || screen,
+                })
+              }
+            >
+              M+
+            </Button>
             <Button
               symbol={"/"}
               dispatch={() =>
@@ -194,7 +314,14 @@ const Calculadora = () => {
             >
               ÷
             </Button>
-            <Button symbol={"minus"} dispatch={dispatch}>
+            <Button
+              symbol={"minus"}
+              dispatch={() =>
+                dispatch({
+                  type: ACTIONS.MINPLUS,
+                })
+              }
+            >
               +/-
             </Button>
             <Button
